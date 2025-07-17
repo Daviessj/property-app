@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Inspection App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .schedule-view {
+            display: block;
+        }
+
+        .inspection-view {
+            display: none;
+        }
+
+        .category-view {
+            display: none;
+        }
+
+        .address-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .address-card:hover {
+            border-color: #4facfe;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.15);
+        }
+
+        .address-card.completed {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .address-card.completed::after {
+            content: '✓';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .address-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .address-details {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .category-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .category-card:hover {
+            border-color: #4facfe;
+            transform: translateY(-2px);
+        }
+
+        .category-card.completed {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .category-card.completed::after {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .category-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .category-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .camera-section {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .camera-container {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        #cameraFeed {
+            width: 100%;
+            border-radius: 15px;
+            background: #f0f0f0;
+        }
+
+        .capture-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+        }
+
+        .capture-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn.secondary {
+            background: #6c757d;
+        }
+
+        .btn.success {
+            background: #28a745;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            transition: width 0.3s ease;
+        }
+
+        .photo-assignment {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .photo-standards {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .photo-standards h3 {
+            color: #1565c0;
+            margin-bottom: 15px;
+        }
+
+        .standard-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 8px;
+            background: white;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .standard-icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .photo-validation {
+            background: #fff8e1;
+            border: 1px solid #ffcc02;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .validation-check {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+            padding: 8px;
+            background: white;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .validation-check.passed {
+            border-left: 4px solid #4caf50;
+        }
+
+        .validation-check.failed {
+            border-left: 4px solid #f44336;
+        }
+
+        .validation-check.warning {
+            border-left: 4px solid #ff9800;
+        }
+
+        .validation-icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+
+        .retake-btn {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 0.9rem;
+        }
+
+        .retake-btn:hover {
+            background: #f57c00;
+        }
+
+        .photo-assignment h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .assignment-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .assignment-btn {
+            background: #fff;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+            padding: 10px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .assignment-btn:hover {
+            background: #ffeaa7;
+            color: #856404;
+        }
+
+        .captured-photo {
+            width: 100%;
+            border-radius: 15px;
+            margin: 15px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            color: #155724;
+        }
+
+        .canvas-hidden {
+            display: none;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-pending {
+            background: #ffc107;
+        }
+
+        .status-completed {
+            background: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Property Inspector</h1>
+            <p>Daily Schedule & Documentation</p>
+        </div>
+
+        <div class="content">
+            <!-- Schedule View -->
+            <div class="schedule-view" id="scheduleView">
+                <h2 style="margin-bottom: 20px; color: #333;">Today's Schedule</h2>
+                <div id="scheduleList"></div>
+            </div>
+
+            <!-- Inspection View -->
+            <div class="inspection-view" id="inspectionView">
+                <button class="btn secondary" onclick="backToSchedule()">← Back to Schedule</button>
+                <h2 id="currentAddress" style="margin: 20px 0; color: #333;"></h2>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div id="categoryGrid" class="category-grid"></div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn success" onclick="completeProperty()" id="completeBtn" style="display: none;">Complete Property</button>
+                </div>
+            </div>
+
+            <!-- Category View -->
+            <div class="category-view" id="categoryView">
+                <button class="btn secondary" onclick="backToInspection()">← Back to Categories</button>
+                <h3 id="currentCategory" style="margin: 20px 0; color: #333;"></h3>
+                
+                <div class="photo-standards">
+                    <h3>Photo Standards for <span id="categoryStandards"></span></h3>
+                    <div id="standardsList"></div>
+                </div>
+
+                <div class="camera-section">
+                    <video id="cameraFeed" autoplay playsinline></video>
+                    <canvas id="canvas" class="canvas-hidden"></canvas>
+                    <button class="capture-btn" onclick="capturePhoto()">📸 Capture Photo</button>
+                </div>
+
+                <div id="photoValidation" class="photo-validation" style="display: none;">
+                    <h3>Photo Quality Check</h3>
+                    <div id="validationResults"></div>
+                    <div style="margin-top: 15px;">
+                        <button class="retake-btn" onclick="retakePhoto()">📸 Retake Photo</button>
+                        <button class="btn" onclick="proceedWithPhoto()" id="proceedBtn" style="display: none;">✓ Proceed</button>
+                    </div>
+                </div>
+
+                <div id="photoAssignment" class="photo-assignment" style="display: none;">
+                    <h3>Assign this photo to a folder:</h3>
+                    <img id="capturedPhoto" class="captured-photo" style="display: none;">
+                    <div class="assignment-buttons" id="assignmentButtons"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Detailed photo standards with specific documentation requirements
+        const photoStandards = {
+            'Kitchen': [
+                { icon: '🔍', text: 'Appliance serial numbers must be clearly visible and readable' },
+                { icon: '🚰', text: 'Sink model number and faucet brand/model if visible' },
+                { icon: '💡', text: 'Light fixture brands and bulb types documented' },
+                { icon: '🔌', text: 'GFCI outlet test buttons and reset functionality shown' },
+                { icon: '📐', text: 'Countertop material and any damage/wear visible' },
+                { icon: '🚪', text: 'Cabinet hardware and door condition documented' }
+            ],
+            'Bathroom': [
+                { icon: '🚿', text: 'Shower/tub model numbers and brand markings visible' },
+                { icon: '🚽', text: 'Toilet brand, model, and water level clearly shown' },
+                { icon: '💡', text: 'Exhaust fan model and CFM rating if accessible' },
+                { icon: '🔍', text: 'Grout condition and any mold/mildew documented' },
+                { icon: '🚰', text: 'Faucet flow rate and any leaks clearly visible' },
+                { icon: '🔌', text: 'GFCI outlets tested and working - show test/reset buttons' }
+            ],
+            'Electrical': [
+                { icon: '⚡', text: 'Main panel: brand, model, amperage rating clearly readable' },
+                { icon: '🏷️', text: 'All circuit breaker labels and amperage ratings visible' },
+                { icon: '📊', text: 'Electrical meter reading and serial number documented' },
+                { icon: '🔌', text: 'Outlet tester results for all GFCI and standard outlets' },
+                { icon: '💡', text: 'Light switch brands and any dimmer model numbers' },
+                { icon: '⚠️', text: 'Any code violations or safety hazards highlighted' }
+            ],
+            'Gas Systems': [
+                { icon: '🔢', text: 'Gas meter serial number and current reading clearly visible' },
+                { icon: '📅', text: 'Last inspection date and certification stickers readable' },
+                { icon: '🔧', text: 'Shut-off valve location and condition documented' },
+                { icon: '⚠️', text: 'Any gas line damage or corrosion visible' },
+                { icon: '📏', text: 'Proper clearance around meter (minimum 3 feet)' },
+                { icon: '🏷️', text: 'Gas company tags and emergency contact info legible' }
+            ],
+            'Water Systems': [
+                { icon: '🔢', text: 'Water meter reading and serial number clearly shown' },
+                { icon: '💧', text: 'Water pressure gauge reading if accessible' },
+                { icon: '🔧', text: 'Main shut-off valve location and condition' },
+                { icon: '🏷️', text: 'Water heater model, serial number, and capacity visible' },
+                { icon: '📅', text: 'Last maintenance date and any service tags readable' },
+                { icon: '⚠️', text: 'Any leaks, rust, or damage documented' }
+            ],
+            'Exterior': [
+                { icon: '🏠', text: 'House number and street address clearly visible' },
+                { icon: '🏷️', text: 'Any building permits or notices posted on property' },
+                { icon: '📮', text: 'Mailbox number and condition documented' },
+                { icon: '🔍', text: 'Foundation cracks, settling, or structural issues' },
+                { icon: '🏞️', text: 'Property line markers or survey stakes if visible' },
+                { icon: '🚗', text: 'Driveway material and any damage/wear patterns' }
+            ],
+            'HVAC': [
+                { icon: '🏷️', text: 'Unit model number, serial number, and BTU rating visible' },
+                { icon: '📅', text: 'Last service date and technician stickers readable' },
+                { icon: '🌡️', text: 'Thermostat model and current temperature settings' },
+                { icon: '🔧', text: 'Filter type, size, and installation date if marked' },
+                { icon: '📏', text: 'Proper clearance around outdoor units documented' },
+                { icon: '⚠️', text: 'Any refrigerant leaks or system damage visible' }
+            ],
+            'Safety Equipment': [
+                { icon: '🚨', text: 'Smoke detector model, battery type, and test date visible' },
+                { icon: '☠️', text: 'Carbon monoxide detector model and expiration date' },
+                { icon: '🧯', text: 'Fire extinguisher type, pressure gauge, and inspection tag' },
+                { icon: '🚪', text: 'Emergency exit signs and battery backup functionality' },
+                { icon: '📅', text: 'All inspection certificates and compliance dates' },
+                { icon: '🔍', text: 'Sprinkler system components and pressure readings' }
+            ],
+            'Office Space': [
+                { icon: '🏢', text: 'Room/suite numbers clearly visible and documented' },
+                { icon: '🔌', text: 'Data port labels and network connection types' },
+                { icon: '💡', text: 'Light fixture types and any emergency lighting' },
+                { icon: '🚪', text: 'Door hardware, lock types, and access control systems' },
+                { icon: '📏', text: 'ADA compliance features and measurements' },
+                { icon: '🔍', text: 'Any tenant improvements or modifications documented' }
+            ],
+            'Living Room': [
+                { icon: '🔌', text: 'All electrical outlets and any USB/smart features' },
+                { icon: '🪟', text: 'Window manufacturers and any energy efficiency ratings' },
+                { icon: '🔥', text: 'Fireplace model, gas valve, and safety features' },
+                { icon: '📺', text: 'Cable/internet connection points and signal strength' },
+                { icon: '💡', text: 'Ceiling fan models and light fixture specifications' },
+                { icon: '🌡️', text: 'HVAC vent locations and air flow direction' }
+            ],
+            'Bedrooms': [
+                { icon: '🪟', text: 'Window egress measurements and safety compliance' },
+                { icon: '🔌', text: 'Electrical outlet spacing and GFCI requirements' },
+                { icon: '🚪', text: 'Closet dimensions and any built-in features' },
+                { icon: '🚨', text: 'Smoke detector locations and interconnection status' },
+                { icon: '🌡️', text: 'Temperature control and HVAC zone settings' },
+                { icon: '💡', text: 'Light switch locations and any smart home features' }
+            ]
+        };
+
+        // Photo metadata and geotagging
+        let currentLocation = null;
+        let locationWatchId = null;
+
+        // Enhanced photo validation rules with metadata requirements
+        const photoValidationRules = {
+            minWidth: 1024,
+            minHeight: 768,
+            maxFileSize: 5 * 1024 * 1024, // 5MB
+            requiredSharpness: 0.7,
+            minBrightness: 0.2,
+            maxBrightness: 0.8,
+            requireGeotagging: true,
+            maxLocationAge: 30000 // 30 seconds
+        };
+
+        // App state
+        let currentProperty = null;
+        let currentCategoryIndex = null;
+        let stream = null;
+        let capturedPhotoData = null;
+        let photoValidationResults = null;
+
+        // Sample schedule data
+        const schedule = [
+            {
+                id: 1,
+                address: "123 Main Street",
+                city: "Edinburgh",
+                type: "Residential",
+                time: "9:00 AM",
+                completed: false,
+                categories: ["Kitchen", "Bathroom", "Electrical", "Exterior"]
+            },
+            {
+                id: 2,
+                address: "456 Oak Avenue",
+                city: "Glasgow",
+                type: "Commercial",
+                time: "11:30 AM",
+                completed: false,
+                categories: ["Office Space", "Electrical", "HVAC", "Safety Equipment"]
+            },
+            {
+                id: 3,
+                address: "789 Pine Road",
+                city: "Stirling",
+                type: "Residential",
+                time: "2:00 PM",
+                completed: true,
+                categories: ["Living Room", "Bedrooms", "Kitchen", "Bathroom"]
+            }
+        ];
+
+        // Folder categories for photo assignment
+        const folderCategories = [
+            "Structural Issues",
+            "Electrical Systems",
+            "Plumbing",
+            "HVAC",
+            "Safety Concerns",
+            "General Condition",
+            "Exterior",
+            "Interior",
+            "Documentation",
+            "Other"
+        ];
+
+        // Initialize the app
+        function init() {
+            displaySchedule();
+        }
+
+        // Display the schedule
+        function displaySchedule() {
+            const scheduleList = document.getElementById('scheduleList');
+            scheduleList.innerHTML = '';
+
+            schedule.forEach(property => {
+                // Add gas systems category to sample data
+                if (property.id === 1) {
+                    property.categories = ["Kitchen", "Bathroom", "Electrical", "Gas Systems", "Exterior"];
+                }
+                if (property.id === 2) {
+                    property.categories = ["Office Space", "Electrical", "HVAC", "Water Systems", "Safety Equipment"];
+                }
+                
+                const card = document.createElement('div');
+                card.className = `address-card ${property.completed ? 'completed' : ''}`;
+                card.onclick = () => startInspection(property);
+                
+                card.innerHTML = `
+                    <div class="address-title">
+                        <span class="status-indicator ${property.completed ? 'status-completed' : 'status-pending'}"></span>
+                        ${property.address}
+                    </div>
+                    <div class="address-details">${property.city} • ${property.type}</div>
+                    <div class="address-details">Scheduled: ${property.time}</div>
+                `;
+                
+                scheduleList.appendChild(card);
+            });
+        }
+
+        // Start inspection for a property
+        function startInspection(property) {
+            currentProperty = property;
+            
+            // Initialize completion tracking
+            if (!property.categoryCompletion) {
+                property.categoryCompletion = {};
+                property.categories.forEach(cat => {
+                    property.categoryCompletion[cat] = false;
+                });
+            }
+            
+            showView('inspectionView');
+            document.getElementById('currentAddress').textContent = property.address;
+            displayCategories();
+            updateProgress();
+        }
+
+        // Display categories for current property
+        function displayCategories() {
+            const categoryGrid = document.getElementById('categoryGrid');
+            categoryGrid.innerHTML = '';
+
+            currentProperty.categories.forEach((category, index) => {
+                const card = document.createElement('div');
+                card.className = `category-card ${currentProperty.categoryCompletion[category] ? 'completed' : ''}`;
+                card.onclick = () => startCategoryCapture(index);
+                
+                const icons = {
+                    'Kitchen': '🍽️',
+                    'Bathroom': '🚿',
+                    'Electrical': '⚡',
+                    'Gas Systems': '⛽',
+                    'Water Systems': '💧',
+                    'Exterior': '🏠',
+                    'Office Space': '🏢',
+                    'HVAC': '🌡️',
+                    'Safety Equipment': '🚨',
+                    'Living Room': '🛋️',
+                    'Bedrooms': '🛏️'
+                };
+                
+                card.innerHTML = `
+                    <div class="category-icon">${icons[category] || '📷'}</div>
+                    <div class="category-name">${category}</div>
+                `;
+                
+                categoryGrid.appendChild(card);
+            });
+        }
+
+        // Start camera capture for a category
+        function startCategoryCapture(categoryIndex) {
+            currentCategoryIndex = categoryIndex;
+            const categoryName = currentProperty.categories[categoryIndex];
+            
+            showView('categoryView');
+            document.getElementById('currentCategory').textContent = categoryName;
+            document.getElementById('categoryStandards').textContent = categoryName;
+            
+            // Display photo standards
+            displayPhotoStandards(categoryName);
+            
+            // Start location tracking
+            startLocationTracking();
+            
+            startCamera();
+        }
+
+        // Start location tracking
+        function startLocationTracking() {
+            if ("geolocation" in navigator) {
+                // Get current position
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        currentLocation = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            accuracy: position.coords.accuracy,
+                            timestamp: new Date().toISOString(),
+                            address: currentProperty.address
+                        };
+                        console.log('Location acquired:', currentLocation);
+                    },
+                    (error) => {
+                        console.error('Location error:', error);
+                        alert('Location access is required for property documentation. Please enable location services.');
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 30000
+                    }
+                );
+
+                // Watch position for continuous updates
+                locationWatchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        currentLocation = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            accuracy: position.coords.accuracy,
+                            timestamp: new Date().toISOString(),
+                            address: currentProperty.address
+                        };
+                    },
+                    (error) => {
+                        console.error('Location watch error:', error);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 5000,
+                        maximumAge: 10000
+                    }
+                );
+            } else {
+                alert('Geolocation is not supported by this browser. Photos will not be geotagged.');
+            }
+        }
+
+        // Stop location tracking
+        function stopLocationTracking() {
+            if (locationWatchId) {
+                navigator.geolocation.clearWatch(locationWatchId);
+                locationWatchId = null;
+            }
+        }
+
+        // Display photo standards for current category
+        function displayPhotoStandards(categoryName) {
+            const standardsList = document.getElementById('standardsList');
+            const standards = photoStandards[categoryName] || [
+                { icon: '📷', text: 'Take clear, well-lit photos' },
+                { icon: '🔍', text: 'Ensure all relevant details are visible' },
+                { icon: '📐', text: 'Frame the subject properly' }
+            ];
+            
+            standardsList.innerHTML = '';
+            standards.forEach(standard => {
+                const item = document.createElement('div');
+                item.className = 'standard-item';
+                item.innerHTML = `
+                    <span class="standard-icon">${standard.icon}</span>
+                    <span>${standard.text}</span>
+                `;
+                standardsList.appendChild(item);
+            });
+        }
+
+        // Start camera
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } // Use back camera on mobile
+                });
+                document.getElementById('cameraFeed').srcObject = stream;
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                alert('Camera access denied. Please allow camera access to take photos.');
+            }
+        }
+
+        // Stop camera
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+        }
+
+        // Capture photo with metadata
+        function capturePhoto() {
+            const video = document.getElementById('cameraFeed');
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            
+            // Create photo metadata
+            const photoMetadata = {
+                timestamp: new Date().toISOString(),
+                property: {
+                    address: currentProperty.address,
+                    city: currentProperty.city,
+                    type: currentProperty.type,
+                    id: currentProperty.id
+                },
+                category: currentProperty.categories[currentCategoryIndex],
+                location: currentLocation,
+                inspector: "John Doe", // Would be actual logged-in user
+                device: {
+                    userAgent: navigator.userAgent,
+                    platform: navigator.platform,
+                    language: navigator.language
+                },
+                image: {
+                    width: canvas.width,
+                    height: canvas.height,
+                    format: 'JPEG'
+                }
+            };
+            
+            capturedPhotoData = canvas.toDataURL('image/jpeg', 0.9);
+            
+            // Embed metadata in photo (in production, this would be proper EXIF data)
+            const photoWithMetadata = {
+                imageData: capturedPhotoData,
+                metadata: photoMetadata
+            };
+            
+            // Store for later use
+            window.currentPhotoMetadata = photoMetadata;
+            
+            // Run photo validation
+            validatePhoto(canvas, ctx);
+        }
+
+        // Enhanced photo validation with geolocation checks
+        function validatePhoto(canvas, ctx) {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const validationResults = [];
+            const categoryName = currentProperty.categories[currentCategoryIndex];
+            
+            // Check resolution
+            if (canvas.width >= photoValidationRules.minWidth && canvas.height >= photoValidationRules.minHeight) {
+                validationResults.push({
+                    type: 'passed',
+                    icon: '✅',
+                    text: `Resolution: ${canvas.width}x${canvas.height} (Good)`
+                });
+            } else {
+                validationResults.push({
+                    type: 'failed',
+                    icon: '❌',
+                    text: `Resolution: ${canvas.width}x${canvas.height} (Too low - minimum ${photoValidationRules.minWidth}x${photoValidationRules.minHeight})`
+                });
+            }
+            
+            // Check geolocation
+            if (photoValidationRules.requireGeotagging) {
+                if (currentLocation) {
+                    const locationAge = new Date() - new Date(currentLocation.timestamp);
+                    if (locationAge <= photoValidationRules.maxLocationAge) {
+                        validationResults.push({
+                            type: 'passed',
+                            icon: '📍',
+                            text: `Location: ${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)} (±${currentLocation.accuracy.toFixed(0)}m)`
+                        });
+                    } else {
+                        validationResults.push({
+                            type: 'warning',
+                            icon: '⚠️',
+                            text: `Location: GPS data is ${Math.round(locationAge/1000)}s old`
+                        });
+                    }
+                } else {
+                    validationResults.push({
+                        type: 'failed',
+                        icon: '❌',
+                        text: `Location: GPS coordinates required but not available`
+                    });
+                }
+            }
+            
+            // Check timestamp
+            const now = new Date();
+            validationResults.push({
+                type: 'passed',
+                icon: '🕐',
+                text: `Timestamp: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`
+            });
+            
+            // Check file size (approximate)
+            const dataURL = capturedPhotoData;
+            const sizeInBytes = (dataURL.length * 0.75) - (dataURL.split(',')[0].length + 1);
+            const sizeInMB = sizeInBytes / (1024 * 1024);
+            
+            if (sizeInMB <= photoValidationRules.maxFileSize / (1024 * 1024)) {
+                validationResults.push({
+                    type: 'passed',
+                    icon: '✅',
+                    text: `File size: ${sizeInMB.toFixed(1)}MB (Good)`
+                });
+            } else {
+                validationResults.push({
+                    type: 'failed',
+                    icon: '❌',
+                    text: `File size: ${sizeInMB.toFixed(1)}MB (Too large - maximum 5MB)`
+                });
+            }
+            
+            // Check brightness
+            const brightness = calculateBrightness(imageData);
+            if (brightness >= photoValidationRules.minBrightness && brightness <= photoValidationRules.maxBrightness) {
+                validationResults.push({
+                    type: 'passed',
+                    icon: '✅',
+                    text: `Brightness: ${(brightness * 100).toFixed(0)}% (Good)`
+                });
+            } else if (brightness < photoValidationRules.minBrightness) {
+                validationResults.push({
+                    type: 'failed',
+                    icon: '❌',
+                    text: `Brightness: ${(brightness * 100).toFixed(0)}% (Too dark - numbers may not be readable)`
+                });
+            } else {
+                validationResults.push({
+                    type: 'warning',
+                    icon: '⚠️',
+                    text: `Brightness: ${(brightness * 100).toFixed(0)}% (Very bright - may cause glare on meters)`
+                });
+            }
+            
+            // Check sharpness (simplified)
+            const sharpness = calculateSharpness(imageData);
+            if (sharpness >= photoValidationRules.requiredSharpness) {
+                validationResults.push({
+                    type: 'passed',
+                    icon: '✅',
+                    text: `Sharpness: ${(sharpness * 100).toFixed(0)}% (Good - text should be readable)`
+                });
+            } else {
+                validationResults.push({
+                    type: 'failed',
+                    icon: '❌',
+                    text: `Sharpness: ${(sharpness * 100).toFixed(0)}% (Too blurry - serial numbers may not be readable)`
+                });
+            }
+            
+            // Category-specific validations
+            const categoryValidations = getCategorySpecificValidations(categoryName, imageData);
+            validationResults.push(...categoryValidations);
+            
+            // Store results and display
+            photoValidationResults = validationResults;
+            displayValidationResults();
+        }
+
+        // Get category-specific validation checks
+        function getCategorySpecificValidations(categoryName, imageData) {
+            const validations = [];
+            
+            // Simulate advanced checks that would require AI/ML in production
+            switch(categoryName) {
+                case 'Electrical':
+                    validations.push({
+                        type: 'warning',
+                        icon: '🔍',
+                        text: 'Ensure panel labels and breaker numbers are clearly visible'
+                    });
+                    validations.push({
+                        type: 'warning',
+                        icon: '📊',
+                        text: 'Verify electrical meter reading and serial number are readable'
+                    });
+                    break;
+                    
+                case 'Gas Systems':
+                    validations.push({
+                        type: 'warning',
+                        icon: '🔢',
+                        text: 'Confirm gas meter serial number and current reading are legible'
+                    });
+                    validations.push({
+                        type: 'warning',
+                        icon: '📅',
+                        text: 'Check that inspection stickers and dates are clearly visible'
+                    });
+                    break;
+                    
+                case 'Water Systems':
+                    validations.push({
+                        type: 'warning',
+                        icon: '🔢',
+                        text: 'Verify water meter reading and serial number are readable'
+                    });
+                    validations.push({
+                        type: 'warning',
+                        icon: '🏷️',
+                        text: 'Ensure water heater model and capacity labels are visible'
+                    });
+                    break;
+                    
+                case 'HVAC':
+                    validations.push({
+                        type: 'warning',
+                        icon: '🏷️',
+                        text: 'Confirm unit model, serial number, and BTU rating are legible'
+                    });
+                    validations.push({
+                        type: 'warning',
+                        icon: '📅',
+                        text: 'Check that service tags and maintenance dates are readable'
+                    });
+                    break;
+                    
+                case 'Safety Equipment':
+                    validations.push({
+                        type: 'warning',
+                        icon: '📅',
+                        text: 'Verify all inspection dates and expiration dates are clear'
+                    });
+                    validations.push({
+                        type: 'warning',
+                        icon: '🧯',
+                        text: 'Ensure fire extinguisher pressure gauge is readable'
+                    });
+                    break;
+                    
+                default:
+                    validations.push({
+                        type: 'warning',
+                        icon: '🔍',
+                        text: 'Ensure all text, numbers, and labels are clearly readable'
+                    });
+            }
+            
+            return validations;
+        }
+
+        // Calculate brightness of image
+        function calculateBrightness(imageData) {
+            const data = imageData.data;
+            let sum = 0;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const brightness = (r * 0.299 + g * 0.587 + b * 0.114) / 255;
+                sum += brightness;
+            }
+            
+            return sum / (data.length / 4);
+        }
+
+        // Calculate sharpness of image (simplified Laplacian variance)
+        function calculateSharpness(imageData) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            
+            let variance = 0;
+            let mean = 0;
+            let count = 0;
+            
+            // Convert to grayscale and calculate Laplacian
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    const idx = (y * width + x) * 4;
+                    
+                    // Get surrounding pixels
+                    const center = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+                    const top = (data[idx - width * 4] + data[idx - width * 4 + 1] + data[idx - width * 4 + 2]) / 3;
+                    const bottom = (data[idx + width * 4] + data[idx + width * 4 + 1] + data[idx + width * 4 + 2]) / 3;
+                    const left = (data[idx - 4] + data[idx - 3] + data[idx - 2]) / 3;
+                    const right = (data[idx + 4] + data[idx + 5] + data[idx + 6]) / 3;
+                    
+                    // Laplacian kernel
+                    const laplacian = Math.abs(4 * center - top - bottom - left - right);
+                    mean += laplacian;
+                    count++;
+                }
+            }
+            
+            mean /= count;
+            
+            // Calculate variance
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    const idx = (y * width + x) * 4;
+                    
+                    const center = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
+                    const top = (data[idx - width * 4] + data[idx - width * 4 + 1] + data[idx - width * 4 + 2]) / 3;
+                    const bottom = (data[idx + width * 4] + data[idx + width * 4 + 1] + data[idx + width * 4 + 2]) / 3;
+                    const left = (data[idx - 4] + data[idx - 3] + data[idx - 2]) / 3;
+                    const right = (data[idx + 4] + data[idx + 5] + data[idx + 6]) / 3;
+                    
+                    const laplacian = Math.abs(4 * center - top - bottom - left - right);
+                    variance += Math.pow(laplacian - mean, 2);
+                }
+            }
+            
+            variance /= count;
+            
+            // Normalize to 0-1 range (simplified)
+            return Math.min(variance / 1000, 1);
+        }
+
+        // Display validation results
+        function displayValidationResults() {
+            const validationContainer = document.getElementById('validationResults');
+            validationContainer.innerHTML = '';
+            
+            let allPassed = true;
+            let hasFailures = false;
+            
+            photoValidationResults.forEach(result => {
+                const item = document.createElement('div');
+                item.className = `validation-check ${result.type}`;
+                item.innerHTML = `
+                    <span class="validation-icon">${result.icon}</span>
+                    <span>${result.text}</span>
+                `;
+                validationContainer.appendChild(item);
+                
+                if (result.type === 'failed') {
+                    hasFailures = true;
+                    allPassed = false;
+                } else if (result.type === 'warning') {
+                    allPassed = false;
+                }
+            });
+            
+            // Show validation section
+            document.getElementById('photoValidation').style.display = 'block';
+            
+            // Show/hide proceed button based on results
+            const proceedBtn = document.getElementById('proceedBtn');
+            if (hasFailures) {
+                proceedBtn.style.display = 'none';
+            } else {
+                proceedBtn.style.display = 'inline-block';
+                proceedBtn.textContent = allPassed ? '✓ Proceed' : '⚠️ Proceed (with warnings)';
+            }
+        }
+
+        // Retake photo
+        function retakePhoto() {
+            document.getElementById('photoValidation').style.display = 'none';
+            document.getElementById('photoAssignment').style.display = 'none';
+            capturedPhotoData = null;
+            photoValidationResults = null;
+            startCamera();
+        }
+
+        // Proceed with photo after validation
+        function proceedWithPhoto() {
+            // Show photo assignment section
+            document.getElementById('capturedPhoto').src = capturedPhotoData;
+            document.getElementById('capturedPhoto').style.display = 'block';
+            document.getElementById('photoAssignment').style.display = 'block';
+            
+            // Generate assignment buttons
+            const assignmentButtons = document.getElementById('assignmentButtons');
+            assignmentButtons.innerHTML = '';
+            
+            folderCategories.forEach(folder => {
+                const btn = document.createElement('button');
+                btn.className = 'assignment-btn';
+                btn.textContent = folder;
+                btn.onclick = () => assignToFolder(folder);
+                assignmentButtons.appendChild(btn);
+            });
+            
+            stopCamera();
+        }
+
+        // Assign photo to folder with full metadata
+        function assignToFolder(folderName) {
+            const categoryName = currentProperty.categories[currentCategoryIndex];
+            const metadata = window.currentPhotoMetadata;
+            
+            // Create comprehensive photo record
+            const photoRecord = {
+                id: Date.now(),
+                filename: `${currentProperty.address.replace(/\s+/g, '_')}_${categoryName}_${Date.now()}.jpg`,
+                folder: folderName,
+                category: categoryName,
+                property: metadata.property,
+                location: metadata.location,
+                timestamp: metadata.timestamp,
+                inspector: metadata.inspector,
+                device: metadata.device,
+                image: metadata.image,
+                validation: photoValidationResults,
+                dropboxPath: `/${currentProperty.address}/${folderName}/`
+            };
+            
+            // Simulate saving to Dropbox with metadata
+            console.log('Photo saved with metadata:', photoRecord);
+            
+            // Create detailed success message
+            const locationStr = metadata.location ? 
+                `Location: ${metadata.location.latitude.toFixed(6)}, ${metadata.location.longitude.toFixed(6)} (±${metadata.location.accuracy.toFixed(0)}m)` :
+                'Location: Not available';
+            
+            const successMessage = `Photo saved successfully!\n\n` +
+                `📁 Folder: ${currentProperty.address}/${folderName}\n` +
+                `📍 ${locationStr}\n` +
+                `🕐 Time: ${new Date(metadata.timestamp).toLocaleString()}\n` +
+                `📷 Category: ${categoryName}\n` +
+                `👤 Inspector: ${metadata.inspector}\n` +
+                `📊 Resolution: ${metadata.image.width}x${metadata.image.height}`;
+            
+            alert(successMessage);
+            
+            // Mark category as completed
+            currentProperty.categoryCompletion[categoryName] = true;
+            
+            // Go back to inspection view
+            backToInspection();
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const completed = Object.values(currentProperty.categoryCompletion).filter(Boolean).length;
+            const total = currentProperty.categories.length;
+            const progress = (completed / total) * 100;
+            
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            
+            // Show complete button if all categories are done
+            if (completed === total) {
+                document.getElementById('completeBtn').style.display = 'block';
+            }
+        }
+
+        // Complete property inspection
+        function completeProperty() {
+            currentProperty.completed = true;
+            
+            // Simulate Dropbox upload
+            console.log(`Property ${currentProperty.address} completed and uploaded to Dropbox`);
+            
+            alert(`Property inspection completed!\nAll photos have been organized and uploaded to Dropbox.`);
+            
+            backToSchedule();
+        }
+
+        // Navigation functions
+        function showView(viewId) {
+            document.querySelectorAll('.schedule-view, .inspection-view, .category-view').forEach(view => {
+                view.style.display = 'none';
+            });
+            document.getElementById(viewId).style.display = 'block';
+        }
+
+        function backToSchedule() {
+            showView('scheduleView');
+            displaySchedule();
+            stopCamera();
+            stopLocationTracking();
+        }
+
+        function backToInspection() {
+            showView('inspectionView');
+            displayCategories();
+            updateProgress();
+            stopCamera();
+            stopLocationTracking();
+            
+            // Hide photo validation and assignment
+            document.getElementById('photoValidation').style.display = 'none';
+            document.getElementById('photoAssignment').style.display = 'none';
+        }
+
+        // Initialize app when page loads
+        window.onload = init;
+    </script>
+</body>
+</html>
